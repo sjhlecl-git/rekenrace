@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RekenRace v3</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Nunito:wght@500;700;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body data-theme="classic">
+
+  <!-- ===== Profile picker overlay (shown on first load / no profile) ===== -->
+  <div id="profilePickerOverlay" class="full-overlay hidden">
+    <div id="overlayContent" class="overlay-inner"></div>
+  </div>
+
+  <!-- ===== Result modal ===== -->
+  <div id="resultModal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="resultHeading">
+    <div class="modal-box">
+      <div id="resultContent"></div>
+    </div>
+  </div>
+
+  <!-- ===== Decorative background shapes ===== -->
+  <div class="bg-shape bg-shape-a" aria-hidden="true"></div>
+  <div class="bg-shape bg-shape-b" aria-hidden="true"></div>
+
+  <div class="app-shell">
+
+    <!-- ===== Top bar ===== -->
+    <header class="topbar card">
+      <h1 class="app-title">🏎️ RekenRace</h1>
+      <div class="topbar-right">
+        <button id="profileBtn" class="profile-pill" title="Bekijk profielen">
+          👤 <span id="profileBtnName">Laden…</span>
+        </button>
+        <span class="coin-pill">🪙 <strong id="coinCount">0</strong></span>
+        <button id="musicToggleBtn" class="music-toggle-btn" title="Muziek uit">🔊</button>
+        <button id="logoutBtn" class="logout-btn" title="Wissel van speler">🚪 Wissel</button>
+      </div>
+    </header>
+
+    <!-- ===== Main game card ===== -->
+    <section class="game-card card">
+
+      <!-- Stage map (default view) -->
+      <div id="stageMapView">
+        <div class="mode-row">
+          <button id="modeChallengeBtn" class="mode-btn active" aria-pressed="true">
+            🏆 Challenge
+          </button>
+          <button id="modePracticeBtn" class="mode-btn" aria-pressed="false">
+            📖 Oefenen
+          </button>
+        </div>
+        <p id="modeHint" class="mode-hint">Challenge: timer + voortgang + beloningen</p>
+        <div id="stageList" class="stage-list"></div>
+      </div>
+
+      <!-- Game view (active during play) -->
+      <div id="gameView" class="hidden">
+        <div class="game-header">
+          <span id="levelTitle" class="level-title">Tafel 1</span>
+          <div class="game-pills">
+            <span id="modePill" class="pill-mode challenge">🏆 Challenge</span>
+            <span id="timerDisplay" class="pill-timer">⏱️ 0.0s</span>
+            <span id="remainingDisplay" class="pill-remaining">📝 20</span>
+          </div>
+        </div>
+
+        <div class="progress-bar-wrap">
+          <div id="progressFill" class="progress-fill"></div>
+          <div id="progressRepeat" class="progress-repeat hidden"></div>
+        </div>
+
+        <div id="pauseBanner" class="pause-banner hidden" role="alert">
+          ⏸️ Gepauzeerd — Let op: na pauze geen coins, badges of voortgang!
+        </div>
+
+        <div class="question-area">
+          <img id="characterImg" class="character-img hidden" alt="">
+          <div id="questionLabel" class="question-text" aria-live="polite" aria-atomic="true">
+            7 × 8 = ?
+          </div>
+          <input
+            id="answerInput"
+            type="text"
+            inputmode="numeric"
+            pattern="[0-9]*"
+            class="answer-input"
+            autocomplete="off"
+            placeholder="?"
+            aria-label="Jouw antwoord"
+          />
+          <div id="feedbackText" class="feedback-text" aria-live="assertive" aria-atomic="true"></div>
+        </div>
+
+        <div class="game-actions">
+          <button id="pauseBtn" class="btn btn-pause">⏸️ Pauze</button>
+          <button id="resetBtn" class="btn btn-reset">🔄 Opnieuw</button>
+          <button id="quitBtn"  class="btn btn-quit">🚪 Stop</button>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ===== Tab navigation ===== -->
+    <nav class="tab-nav" aria-label="Secties">
+      <button class="tab-btn active" data-tab="shop">🛒 Shop</button>
+      <button class="tab-btn" data-tab="leaderboard">🏆 Scores</button>
+      <button class="tab-btn" data-tab="uitdagingen">💪 Uitdagingen</button>
+      <button class="tab-btn" data-tab="admin">⚙️ Admin</button>
+    </nav>
+
+    <!-- ===== Tab panels ===== -->
+    <main class="tabs-content">
+      <section id="tab-shop"        class="tab-panel card"></section>
+      <section id="tab-leaderboard" class="tab-panel card hidden"></section>
+      <section id="tab-uitdagingen"  class="tab-panel card hidden"></section>
+      <section id="tab-admin"       class="tab-panel card hidden"></section>
+    </main>
+
+  </div>
+
+  <audio id="musicPlayer" loop></audio>
+  <script src="app.js"></script>
+</body>
+</html>
