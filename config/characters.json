@@ -1,0 +1,14 @@
+[
+  {
+    "id": "char-jungle",
+    "naam": "Josje",
+    "prijs": 20,
+    "src": "characters/j in mc.jpg"
+  },
+  {
+    "id": "char-space",
+    "naam": "Ruimteboot",
+    "prijs": 20,
+    "src": "characters/t in mc.jpg"
+  }
+]

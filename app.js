@@ -7,6 +7,10 @@
 // ─── Storage key ────────────────────────────────────────────
 const STORAGE_KEY = "rekenrace_v3";
 
+// ___ preconfigured backgrounds etc. _________
+let configuredBackgrounds = [];
+let configuredCharacters = [];
+
 // ─── IndexedDB helpers (large binary assets) ─────────────────
 // Binary data (images, audio) is too large for localStorage (~5 MB limit).
 // We store blobs in IndexedDB (no practical size limit) and keep only metadata
@@ -214,13 +218,13 @@ const COIN_REWARDS = {
 const BADGE_COIN_REWARD = 10;
 
 // Base themes
-const BASE_THEMES = [
-  { id: "classic", naam: "Classic",        prijs: 0,   cssTheme: "classic", customImage: null },
-  { id: "ocean",   naam: "Oceaan",          prijs: 100, cssTheme: "ocean",   customImage: null },
-  { id: "sunset",  naam: "Zonsondergang",   prijs: 150, cssTheme: "sunset",  customImage: null },
-  { id: "forest",  naam: "Bos",             prijs: 200, cssTheme: "forest",  customImage: null },
-  { id: "space",   naam: "Ruimte",          prijs: 300, cssTheme: "space",   customImage: null },
-];
+// const BASE_THEMES = [
+//   { id: "classic", naam: "Classic",        prijs: 0,   cssTheme: "classic", customImage: null },
+//   { id: "ocean",   naam: "Oceaan",          prijs: 100, cssTheme: "ocean",   customImage: null },
+//   { id: "sunset",  naam: "Zonsondergang",   prijs: 150, cssTheme: "sunset",  customImage: null },
+//   { id: "forest",  naam: "Bos",             prijs: 200, cssTheme: "forest",  customImage: null },
+//   { id: "space",   naam: "Ruimte",          prijs: 300, cssTheme: "space",   customImage: null },
+// ];
 
 const BASE_MUSIC = [
   { id: "silent", naam: "Geen muziek", prijs: 0, src: "" },
@@ -234,7 +238,7 @@ let state = {
   runsAllTime: [],          // eligible leaderboard runs only
   speedChampions: {},       // levelId → { profileId, profileName, timeMs }
   admin: {
-    password: "1234",
+    password: "wiekendreef",
     unlocked: false,
     devUnlockShop: false,
     uploadedThemes: [],
@@ -267,6 +271,57 @@ let game = {
 let selectedMode = "challenge";
 
 // ─── Utility ────────────────────────────────────────────────
+
+async function loadConfiguredBackgrounds() {
+    try {
+        const response = await fetch("config/backgrounds.json");
+
+        if (!response.ok) {
+            console.warn("Geen backgrounds.json gevonden");
+            return;
+        }
+
+        const data = await response.json();
+
+        configuredBackgrounds = data.map(item => ({
+            id: item.id,
+            naam: item.naam,
+            prijs: item.prijs,
+            cssTheme: "classic",
+            customImage: item.bestand,
+            builtIn: true
+        }));
+
+    } catch (err) {
+        console.error("Kon backgrounds.json niet laden", err);
+    }
+}
+
+async function loadConfiguredCharacters() {
+    try {
+        const response = await fetch("config/characters.json");
+
+        if (!response.ok) {
+            console.warn("Geen characters.json gevonden");
+            return;
+        }
+
+        const data = await response.json();
+
+        configuredCharacters = data.map(item => ({
+            id: item.id,
+            naam: item.naam,
+            prijs: item.prijs,
+            src: item.src,
+            builtIn: true
+        }));
+
+    } catch (err) {
+        console.error("Kon characters.json niet laden", err);
+    }
+}
+
+
 function uid() {
   return Math.random().toString(36).slice(2, 10);
 }
@@ -384,7 +439,7 @@ function normalizeProfile(p) {
   if (!profile.selectedThemeId)                        profile.selectedThemeId = "classic";
   if (!profile.selectedTrackId)                        profile.selectedTrackId = "silent";
   if (!Array.isArray(profile.recentMistakes))          profile.recentMistakes = [];
-  if (profile.selectedCharacterId === undefined)        profile.selectedCharacterId = null;
+  if (profile.selectedCharacterId === undefined)       profile.selectedCharacterId = null;
   if (!Array.isArray(profile.unlockedCharacterIds))    profile.unlockedCharacterIds = [];
   if (!profile.gameMode)                               profile.gameMode = "keersommen";
   if (!profile.id)                                     profile.id = uid();
@@ -433,7 +488,7 @@ function loadState() {
     state.speedChampions = (parsed.speedChampions && typeof parsed.speedChampions === "object")
       ? parsed.speedChampions : {};
     state.admin = {
-      password:          parsed.admin?.password || "1234",
+      password:          parsed.admin?.password || "wiekendreef",
       unlocked:          false,
       devUnlockShop:     Boolean(parsed.admin?.devUnlockShop),
       uploadedThemes:      Array.isArray(parsed.admin?.uploadedThemes)     ? parsed.admin.uploadedThemes     : [],
@@ -1343,7 +1398,7 @@ function showResultScreen(data) {
     // Coin claim — itemized breakdown
     if (data.totalCoins > 0) {
       html += `<div class="coin-claim-box">`;
-      html += `<span class="coin-big">🪙</span>`;
+      html += `<span class="coin-big">💰</span>`;
       html += `<div class="coin-breakdown">`;
       if (data.levelCoins > 0) {
         html += `<div class="coin-line">🏅 Level behaald: <strong>+${data.levelCoins}</strong></div>`;
@@ -1364,7 +1419,7 @@ function showResultScreen(data) {
       html += `</div>`;
     }
 
-    const btnLabel = data.totalCoins > 0 ? "🪙 Claim & Doorgaan" : "👍 Doorgaan";
+    const btnLabel = data.totalCoins > 0 ? "💰 Claim & Doorgaan" : "👍 Doorgaan";
     html += `<div class="result-close-wrap"><button id="resultCloseBtn" class="btn btn-primary btn-large">${btnLabel}</button></div>`;
 
     content.innerHTML = html;
@@ -1379,10 +1434,19 @@ function showResultScreen(data) {
 
 // ─── Theme & music application ──────────────────────────────
 function getAllThemes() {
-  return [...BASE_THEMES, ...state.admin.uploadedThemes];
+    return [
+        ...configuredBackgrounds,
+        ...state.admin.uploadedThemes
+    ];
 }
 function getAllTracks() {
-  return [...BASE_MUSIC, ...state.admin.uploadedTracks];
+  return [...BASE_MUSIC, 
+          ...state.admin.uploadedTracks];
+}
+
+function getAllCharacters() {
+  return [...configuredCharacters, 
+          ...state.admin.uploadedCharacters];
 }
 
 function applyTheme(profile) {
@@ -1390,7 +1454,7 @@ function applyTheme(profile) {
   // Color scheme is automatic based on highest unlocked stage
   document.body.setAttribute("data-theme", getStageTheme(profile));
   // Background image from selected uploaded theme (if any)
-  const uploadedTheme = state.admin.uploadedThemes.find((t) => t.id === profile.selectedThemeId);
+  const uploadedTheme = getAllThemes().find((t) => t.id === profile.selectedThemeId);
   document.documentElement.style.setProperty(
     "--custom-image",
     uploadedTheme?.customImage ? `url('${uploadedTheme.customImage}')` : "none"
@@ -1405,7 +1469,8 @@ function applyCharacter(profile) {
     img.classList.add("hidden");
     return;
   }
-  const char = state.admin.uploadedCharacters.find((c) => c.id === profile.selectedCharacterId);
+
+  const char = getAllCharacters().find((c) => c.id === profile.selectedCharacterId);
   if (char?.src) {
     img.src = char.src;
     img.classList.remove("hidden");
@@ -1601,18 +1666,18 @@ function renderShop() {
   }
 
   el.innerHTML = `<h2>🛒 Shop</h2>
-    <div class="shop-lock-hint">Je hebt ${profile.coins} 🪙 om te besteden (of je kunt nog even doorsparen).</div>
+    <div class="shop-lock-hint">Je hebt ${profile.coins} 💰 om te besteden (of je kunt nog even doorsparen).</div>
     <details class="coin-legend">
-      <summary>Hoe kan ik 🪙 verdienen?</summary>
+      <summary>Hoe kan ik 💰 verdienen?</summary>
       <div class="coin-legend-grid">
         <span> Één keer per level: </span><strong> </strong>
-        <span>🎯 Tafel level behaald</span><strong>10 🪙</strong>
-        <span>🔀 Mix level behaald</span><strong>25 🪙</strong>
-        <span>🎁 Bonus level behaald</span><strong>60 🪙</strong>
-        <span>🏅 Eerste perfecte run</span><strong>10 🪙</strong>
-        <span>🥉 3× perfect voltooid</span><strong>10 🪙</strong>
-        <span>⚡ Snelste kampioen (per keer dat je hem verdient)</span><strong>10 🪙</strong>
-        <span>💪 Uitdagingen foutloos *</span><strong>20 🪙</strong>
+        <span>🎯 Tafel level behaald</span><strong>10 💰</strong>
+        <span>🔀 Mix level behaald</span><strong>25 💰</strong>
+        <span>🎁 Bonus level behaald</span><strong>60 💰</strong>
+        <span>🏅 Eerste perfecte run</span><strong>10 💰</strong>
+        <span>🥉 3× perfect voltooid</span><strong>10 💰</strong>
+        <span>⚡ Snelste kampioen (per keer dat je hem verdient)</span><strong>10 💰</strong>
+        <span>💪 Uitdagingen foutloos *</span><strong>20 💰</strong>
         <span> <em>* Een uitdagingen level komt soms beschikbaar onder de tab 💪 Uitdagingen. </em></span><strong> </strong>
       </div>
     </details>
@@ -1626,7 +1691,8 @@ function renderShop() {
 
   // ── backgrounds ───────────────────────────────────────────
   // ── Uploaded backgrounds (no base themes in shop) ────────
-  const uploadedThemes = state.admin.uploadedThemes;
+  const uploadedThemes = getAllThemes();
+  
   // "Geen achtergrond" option — always visible
   const noneThemeSelected = !uploadedThemes.some((t) => t.id === profile.selectedThemeId);
   const noneThemeCard = document.createElement("div");
@@ -1656,8 +1722,8 @@ function renderShop() {
 
       const label = current ? "✅ Gekozen"
         : owned || state.admin.devUnlockShop ? "Gebruik"
-        : canAfford ? `🪙 ${theme.prijs}`
-        : `${theme.prijs} 🪙`;
+        : canAfford ? `💰 ${theme.prijs}`
+        : `${theme.prijs} 💰`;
 
       card.innerHTML = `<div class="shop-card-name">${escHtml(theme.naam)}</div>
         <button class="btn${current ? " btn-active" : !tooExpensive ? " btn-primary" : " btn-locked"}"${current || tooExpensive ? " disabled" : ""}>${label}</button>`;
@@ -1712,8 +1778,8 @@ function renderShop() {
 
       const label = current ? "✅ Gekozen"
         : owned || state.admin.devUnlockShop ? "Gebruik"
-        : canAfford ? `🪙 ${char.prijs}`
-        : `${char.prijs} 🪙`;
+        : canAfford ? `💰 ${char.prijs}`
+        : `${char.prijs} 💰`;
 
       card.innerHTML = `<div class="shop-card-name">${escHtml(char.naam)}</div>
         <button class="btn${current ? " btn-active" : !tooExpensive ? " btn-primary" : " btn-locked"}"${current || tooExpensive ? " disabled" : ""}>${label}</button>`;
@@ -1990,7 +2056,7 @@ function renderAdmin() {
   if (!state.admin.unlocked) {
     el.innerHTML = `<h2>⚙️ Admin</h2>
       <div class="admin-lock">
-        <p class="hint">Voer het beheerderswachtwoord in (eerste keer inloggen met: 1234).</p>
+        <p class="hint">Voer het beheerderswachtwoord in. (eerste keer inloggen --> Vraag Solange!).</p>
         <div class="form-row">
           <input id="adminPwInput" type="password" class="text-input" placeholder="Wachtwoord" autocomplete="current-password" />
           <button id="adminUnlockBtn" class="btn btn-primary">🔓 Open</button>
@@ -2011,22 +2077,23 @@ function renderAdmin() {
   }
 
   // ── Uploaded themes list ─────────────────────────────────
-  const uploadedThemeRows = state.admin.uploadedThemes.length > 0
-    ? state.admin.uploadedThemes.map((t) =>
+  const uploadedThemeRows = getAllThemes().length > 0
+    ? getAllThemes().map((t) =>
         `<div class="uploaded-item">
           <span class="uploaded-name">${escHtml(t.naam)}</span>
-          <span class="uploaded-price">🪙 ${t.prijs}</span>
+          <span class="uploaded-price">💰 ${t.prijs}</span>
           <button class="btn btn-small btn-danger" data-delete-theme="${escHtml(t.id)}">🗑️ Verwijder</button>
         </div>`
       ).join("")
     : `<p class="hint">Nog geen achtergronden geüpload.</p>`;
 
   // ── Uploaded characters list ─────────────────────────────
-  const uploadedCharRows = state.admin.uploadedCharacters.length > 0
-    ? state.admin.uploadedCharacters.map((c) =>
+  const uploadedCharRows = getAllCharacters().length > 0
+    //? state.admin.uploadedCharacters.map((c) =>
+      ? getAllCharacters().map((c) =>
         `<div class="uploaded-item">
           <span class="uploaded-name">${escHtml(c.naam)}</span>
-          <span class="uploaded-price">🪙 ${c.prijs}</span>
+          <span class="uploaded-price">💰 ${c.prijs}</span>
           <button class="btn btn-small btn-danger" data-delete-char="${escHtml(c.id)}">🗑️ Verwijder</button>
         </div>`
       ).join("")
@@ -2037,7 +2104,7 @@ function renderAdmin() {
     ? state.admin.uploadedTracks.map((t) =>
         `<div class="uploaded-item">
           <span class="uploaded-name">${escHtml(t.naam)}</span>
-          <span class="uploaded-price">🪙 ${t.prijs}</span>
+          <span class="uploaded-price">💰 ${t.prijs}</span>
           <button class="btn btn-small btn-danger" data-delete-track="${escHtml(t.id)}">🗑️ Verwijder</button>
         </div>`
       ).join("")
@@ -2547,6 +2614,8 @@ function renderAll() {
 // ─── Initialise ──────────────────────────────────────────────
 async function init() {
   loadState();
+  await loadConfiguredBackgrounds();
+  await loadConfiguredCharacters();
   await loadBlobsFromIDB();
 
   // Mode buttons
