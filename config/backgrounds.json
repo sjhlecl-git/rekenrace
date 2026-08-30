@@ -46,11 +46,5 @@
     "naam": "Betoverde Bos",
     "prijs": 100,
     "bestand": "backgrounds/betoverde bos.png"
-  },
-  {
-    "id": "bg-poke",
-    "naam": "Poké",
-    "prijs": 100,
-    "bestand": "backgrounds/poke.jpg"
   }
 ]
