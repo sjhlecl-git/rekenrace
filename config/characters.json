@@ -3,12 +3,18 @@
     "id": "char-jungle",
     "naam": "Josje",
     "prijs": 20,
-    "src": "characters/j in mc.jpg"
+    "src": "characters/j in mc.png"
   },
   {
     "id": "char-space",
     "naam": "Tym",
     "prijs": 20,
-    "src": "characters/t in mc.jpg"
+    "src": "characters/t in mc.png"
+  },
+  {
+    "id": "char-poke1",
+    "naam": "bal 1",
+    "prijs": 20,
+    "src": "characters/eevorn.png"
   }
 ]

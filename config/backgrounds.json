@@ -4,5 +4,53 @@
     "naam": "Jungle",
     "prijs": 100,
     "bestand": "backgrounds/myJungle.png"
+  },
+  {
+    "id": "bg-Toverschool",
+    "naam": "Toverschool",
+    "prijs": 100,
+    "bestand": "backgrounds/toverschool.png"
+  },
+  {
+    "id": "bg-GezonkenSchat",
+    "naam": "Gezonken Schat",
+    "prijs": 100,
+    "bestand": "backgrounds/gezonken schat.png"
+  },
+  {
+    "id": "bg-WolkenEiland",
+    "naam": "Wolken Eiland",
+    "prijs": 100,
+    "bestand": "backgrounds/wolken eiland.png"
+  },
+  {
+    "id": "bg-Lollylnad",
+    "naam": "Lollyland",
+    "prijs": 100,
+    "bestand": "backgrounds/lollyland.png"
+  },
+  {
+    "id": "bg-VuurVallei",
+    "naam": "Vuur Vallei",
+    "prijs": 100,
+    "bestand": "backgrounds/VuurVallei.png"
+  },
+  {
+    "id": "bg-NinjaDorp",
+    "naam": "Ninja Dorp",
+    "prijs": 100,
+    "bestand": "backgrounds/Ninja Dorp.png"
+  },
+  {
+    "id": "bg-BetoverdeBos",
+    "naam": "Betoverde Bos",
+    "prijs": 100,
+    "bestand": "backgrounds/betoverde bos.png"
+  },
+  {
+    "id": "bg-poke",
+    "naam": "Poké",
+    "prijs": 100,
+    "bestand": "backgrounds/poke.jpg"
   }
 ]
