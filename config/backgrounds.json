@@ -26,13 +26,13 @@
   {
     "id": "bg-Lollylnad",
     "naam": "Lollyland",
-    "prijs": 100,
+    "prijs": 120,
     "bestand": "backgrounds/lollyland.png"
   },
   {
     "id": "bg-VuurVallei",
     "naam": "Vuur Vallei",
-    "prijs": 100,
+    "prijs": 150,
     "bestand": "backgrounds/VuurVallei.png"
   },
   {
