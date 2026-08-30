@@ -24,18 +24,6 @@
     "bestand": "backgrounds/wolken eiland.png"
   },
   {
-    "id": "bg-Lollylnad",
-    "naam": "Lollyland",
-    "prijs": 120,
-    "bestand": "backgrounds/lollyland.png"
-  },
-  {
-    "id": "bg-VuurVallei",
-    "naam": "Vuur Vallei",
-    "prijs": 150,
-    "bestand": "backgrounds/VuurVallei.png"
-  },
-  {
     "id": "bg-NinjaDorp",
     "naam": "Ninja Dorp",
     "prijs": 100,
@@ -46,5 +34,17 @@
     "naam": "Betoverde Bos",
     "prijs": 100,
     "bestand": "backgrounds/betoverde bos.png"
+  },
+  {
+    "id": "bg-Lollylnad",
+    "naam": "Lollyland",
+    "prijs": 120,
+    "bestand": "backgrounds/lollyland.png"
+  },
+  {
+    "id": "bg-VuurVallei",
+    "naam": "Vuur Vallei",
+    "prijs": 150,
+    "bestand": "backgrounds/VuurVallei.png"
   }
 ]
