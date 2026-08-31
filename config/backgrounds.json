@@ -30,12 +30,6 @@
     "bestand": "backgrounds/ninja dorp.png"
   },
   {
-    "id": "bg-Ninjamissie",
-    "naam": "Ninja Missie",
-    "prijs": 100,
-    "bestand": "backgrounds/ninja missie.png"
-  },
-  {
     "id": "bg-BetoverdeBos",
     "naam": "Betoverde Bos",
     "prijs": 100,
@@ -82,5 +76,11 @@
     "naam": "Dueleren",
     "prijs": 150,
     "bestand": "backgrounds/dueleren.png"
+  },
+  {
+    "id": "bg-Ninjamissie",
+    "naam": "Ninja Missie",
+    "prijs": 150,
+    "bestand": "backgrounds/ninja missie.png"
   }
 ]
