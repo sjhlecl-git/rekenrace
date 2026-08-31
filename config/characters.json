@@ -16,5 +16,11 @@
     "naam": "bal 1",
     "prijs": 20,
     "src": "characters/eevorn.png"
+  },
+  {
+    "id": "char-ninja",
+    "naam": "Ninja",
+    "prijs": 20,
+    "src": "characters/ninja.png"
   }
 ]
