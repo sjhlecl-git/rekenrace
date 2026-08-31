@@ -36,6 +36,30 @@
     "bestand": "backgrounds/betoverde bos.png"
   },
   {
+    "id": "bg-Werkwereld",
+    "naam": "Werk Wereld",
+    "prijs": 100,
+    "bestand": "backgrounds/Werk wereld.png"
+  },
+  {
+    "id": "bg-bosvriendjes",
+    "naam": "Bosvriendjes",
+    "prijs": 100,
+    "bestand": "backgrounds/bosvriendjes.png"
+  },
+  {
+    "id": "bg-kristallentempel",
+    "naam": "Kristallentempel",
+    "prijs": 120,
+    "bestand": "backgrounds/kristallentempel.png"
+  },
+  {
+    "id": "bg-rekenrijk",
+    "naam": "Rekenrijk",
+    "prijs": 120,
+    "bestand": "backgrounds/Rekenrijk.png"
+  },
+  {
     "id": "bg-Lollylnad",
     "naam": "Lollyland",
     "prijs": 120,
