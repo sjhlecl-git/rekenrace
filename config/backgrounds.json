@@ -39,7 +39,7 @@
     "id": "bg-Werkwereld",
     "naam": "Werk Wereld",
     "prijs": 100,
-    "bestand": "backgrounds/Werk wereld.png"
+    "bestand": "backgrounds/werk wereld.png"
   },
   {
     "id": "bg-bosvriendjes",
@@ -57,7 +57,7 @@
     "id": "bg-rekenrijk",
     "naam": "Rekenrijk",
     "prijs": 120,
-    "bestand": "backgrounds/Rekenrijk.png"
+    "bestand": "backgrounds/rekenrijk.png"
   },
   {
     "id": "bg-Lollylnad",
@@ -69,6 +69,6 @@
     "id": "bg-VuurVallei",
     "naam": "Vuur Vallei",
     "prijs": 150,
-    "bestand": "backgrounds/VuurVallei.png"
+    "bestand": "backgrounds/vuurvallei.png"
   }
 ]
