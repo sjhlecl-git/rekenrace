@@ -3,7 +3,7 @@
     "id": "bg-space",
     "naam": "Jungle",
     "prijs": 100,
-    "bestand": "backgrounds/myJungle.png"
+    "bestand": "backgrounds/myjungle.png"
   },
   {
     "id": "bg-Toverschool",
@@ -70,5 +70,11 @@
     "naam": "Vuur Vallei",
     "prijs": 150,
     "bestand": "backgrounds/vuurvallei.png"
+  },
+  {
+    "id": "bg-dueleren",
+    "naam": "Dueleren",
+    "prijs": 150,
+    "bestand": "backgrounds/dueleren.png"
   }
 ]
