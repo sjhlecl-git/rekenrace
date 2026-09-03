@@ -1171,7 +1171,6 @@ function quitGame() {
   game.active = false;
   game.paused = false;
   saveState();
-  saveProfileToSupabase(profile);
   renderUitdagingen();
   showView("stageMap");
   renderStageMap();
@@ -1217,7 +1216,6 @@ function submitAnswer() {
       profileForMistake.recentMistakes.unshift({ question: q.text, answer: q.answer, given: userValue, ts: Date.now() });
       if (profileForMistake.recentMistakes.length > 50) profileForMistake.recentMistakes.length = 50;
       saveState();
-      saveProfileToSupabase(profile);
       if (prevMistakeCount < 10 && profileForMistake.recentMistakes.length >= 10) {
         showToast("💪 10 uitdagingen bereikt! Ga naar het tabblad 💪 Uitdagingen om ze te oefenen.");
         updateUitdagingenBadge();
