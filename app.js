@@ -30,31 +30,6 @@ async function testSupabaseConnection() {
   }
 }
 
-//-----------------migration ---------------
-async function migrateProfilesToSupabase() {
-
-    const createdPins = [];
-
-    for (const profile of state.profiles) {
-
-      if (!profile.pin) {
-        profile.pin = generatePin();
-      }
-
-      await saveProfileToSupabase(profile);
-
-      createdPins.push(
-        `${profile.naam}: ${profile.pin}`
-      );
-    }
-
-    saveState();
-
-    alert(
-      "Migratie voltooid!\n\n" +
-      createdPins.join("\n")
-    );
-  }
 
 // ─── save profile to supabase ────────────────────────────────────────────
 async function saveProfileToSupabase(profile) {
@@ -2411,15 +2386,6 @@ function renderAdmin() {
       <div class="admin-section">
         <h3>👥 Profielbeheer</h3>
         <div id="adminProfileList">${adminProfileRows}</div>
-        
-        <div class="form-row">
-          <button id="migrateProfilesBtn"
-                  class="btn btn-primary">
-            📤 Migreer bestaande spelers
-          </button>
-        </div>
-
-
       </div>
       <div class="admin-section">
         <h3>📊 Speler statistieken</h3>
@@ -2662,17 +2628,6 @@ function renderAdmin() {
     const fb = document.getElementById("leaderboardResetFeedback");
     if (fb) { fb.textContent = "✅ Leaderboard geleegd!"; fb.className = "upload-feedback upload-ok"; }
   });
-
-  document.getElementById("migrateProfilesBtn")
-    ?.addEventListener("click", async () => {
-
-      if (!confirm(
-        "Bestaande spelers naar Supabase migreren?"
-      )) return;
-
-      await migrateProfilesToSupabase();
-
-    });
 
   document.getElementById("adminLockBtn")?.addEventListener("click", () => {
     state.admin.unlocked = false;
