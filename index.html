@@ -112,7 +112,7 @@
       <button class="tab-btn active" data-tab="shop">🛒 Shop</button>
       <button class="tab-btn" data-tab="leaderboard">🏆 Scores</button>
       <button class="tab-btn" data-tab="uitdagingen">💪 Uitdagingen</button>
-      <button class="tab-btn" data-tab="admin">⚙️ Admin</button>
+      <!-- <button class="tab-btn" data-tab="admin">⚙️ Admin</button>--> 
     </nav>
 
     <!-- ===== Tab panels ===== -->
@@ -126,6 +126,17 @@
   </div>
 
   <audio id="musicPlayer" loop></audio>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <script>
+  window.supabaseClient = window.supabase.createClient(
+    "https://ntdpxiagslsvtznfovwx.supabase.co",
+    "sb_publishable_JU2YT4qdV-EzGwN5rifaRw_7dEN85zc"
+  );
+  </script>
+
+
   <script src="app.js"></script>
 </body>
 </html>

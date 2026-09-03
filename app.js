@@ -4,6 +4,127 @@
 
 "use strict";
 
+// ─── supabase test ────────────────────────────────────────────
+async function testSupabaseConnection() {
+  try {
+
+    console.log("window.supabase =", window.supabase);
+    console.log("window.supabaseClient =", window.supabaseClient);
+    console.log("from =", window.supabaseClient?.from);
+
+    const { data, error } = await window.supabaseClient
+      .from("profiles")
+      .select("*")
+      .limit(1);
+
+    if (error) {
+      console.error("Supabase error:", error);
+      return;
+    }
+
+    console.log("✅ Connected to Supabase");
+    console.log(data);
+
+  } catch (err) {
+    console.error("Connection failed:", err);
+  }
+}
+
+//-----------------migration ---------------
+async function migrateProfilesToSupabase() {
+
+    const createdPins = [];
+
+    for (const profile of state.profiles) {
+
+      if (!profile.pin) {
+        profile.pin = generatePin();
+      }
+
+      await saveProfileToSupabase(profile);
+
+      createdPins.push(
+        `${profile.naam}: ${profile.pin}`
+      );
+    }
+
+    saveState();
+
+    alert(
+      "Migratie voltooid!\n\n" +
+      createdPins.join("\n")
+    );
+  }
+
+// ─── save profile to supabase ────────────────────────────────────────────
+async function saveProfileToSupabase(profile) {
+  const { error } = await window.supabaseClient
+    .from("profiles")
+    .upsert(
+      {
+        username: profile.naam,
+        pin: profile.pin,
+        profile_data: profile
+      },
+      {
+        onConflict: "username"
+      }
+    );
+
+  if (error) {
+    console.error("Save failed:", error);
+  } else {
+    console.log("✅ Profile saved:", profile.naam);
+  }
+}
+
+// ─── load profile from supabase ────────────────────────────────────────────
+async function loadProfilesFromSupabase() {
+  const { data, error } = await window.supabaseClient
+    .from("profiles")
+    .select("*");
+
+  if (error) {
+    console.error("Load failed:", error);
+    return [];
+  }
+
+  return data;
+}
+
+
+// ─── delete a profile in supabase ────────────────────────────────────────────
+async function deleteProfileFromSupabase(profileName) {
+
+  const { error } = await window.supabaseClient
+    .from("profiles")
+    .delete()
+    .eq("username", profileName);
+
+  if (error) {
+    console.error("Delete failed:", error);
+  } else {
+    console.log("✅ Profile deleted");
+  }
+}
+
+// ─── validate pin in supabase ────────────────────────────────────────────
+async function validatePin(username, pin) {
+  const { data, error } =
+    await window.supabaseClient
+      .from("profiles")
+      .select("*")
+      .eq("username", username)
+      .eq("pin", pin)
+      .single();
+
+  if (error) {
+    return null;
+  }
+
+  return data;
+}
+
 // ─── Storage key ────────────────────────────────────────────
 const STORAGE_KEY = "rekenrace_v3";
 
@@ -321,6 +442,9 @@ async function loadConfiguredCharacters() {
     }
 }
 
+function generatePin() {
+  return String(Math.floor(1000 + Math.random() * 9000));
+}
 
 function uid() {
   return Math.random().toString(36).slice(2, 10);
@@ -408,7 +532,7 @@ function defaultStageProgress(stageId) {
   };
 }
 
-function defaultProfile(naam) {
+function defaultProfile(naam, pin) {
   const stageProgress = {};
   for (const s of getAllStages()) {
     stageProgress[s.id] = defaultStageProgress(s.id);
@@ -416,6 +540,7 @@ function defaultProfile(naam) {
   return {
     id: uid(),
     naam,
+    pin,
     coins: 0,
     gameMode: "keersommen",
     unlockedThemeIds: ["classic"],
@@ -1071,6 +1196,7 @@ function quitGame() {
   game.active = false;
   game.paused = false;
   saveState();
+  saveProfileToSupabase(profile);
   renderUitdagingen();
   showView("stageMap");
   renderStageMap();
@@ -1116,6 +1242,7 @@ function submitAnswer() {
       profileForMistake.recentMistakes.unshift({ question: q.text, answer: q.answer, given: userValue, ts: Date.now() });
       if (profileForMistake.recentMistakes.length > 50) profileForMistake.recentMistakes.length = 50;
       saveState();
+      saveProfileToSupabase(profile);
       if (prevMistakeCount < 10 && profileForMistake.recentMistakes.length >= 10) {
         showToast("💪 10 uitdagingen bereikt! Ga naar het tabblad 💪 Uitdagingen om ze te oefenen.");
         updateUitdagingenBadge();
@@ -1166,6 +1293,7 @@ async function finishGame() {
       const usedTexts = new Set((game.usedMistakes || []).map((m) => m.question));
       profile.recentMistakes = profile.recentMistakes.filter((m) => !usedTexts.has(m.question));
       saveState();
+      await saveProfileToSupabase(profile);
     }
     await showResultScreen({
       isEffective:   true,
@@ -1303,6 +1431,7 @@ async function finishGame() {
   }
 
   saveState();
+  saveProfileToSupabase(profile);
 
   // ── Badge coins (5 per new badge, always in challenge non-pause) ───────
   const badgeCoins = isEffective ? newBadges.length * BADGE_COIN_REWARD : 0;
@@ -1331,6 +1460,7 @@ async function finishGame() {
   if (totalCoins > 0) {
     profile.coins += totalCoins;
     saveState();
+    saveProfileToSupabase(profile);
   }
 
   showView("stageMap");
@@ -1579,7 +1709,7 @@ function renderProfielen() {
     const isActive = p.id === state.activeProfileId;
     html += `<div class="profile-item${isActive ? " active-profile" : ""}">`;
     html += `<span class="profile-name">${isActive ? "★ " : ""}${escHtml(p.naam)}</span>`;
-    html += `<span class="profile-coins">🪙 ${p.coins}</span>`;
+    html += `<span class="profile-coins">💰 ${p.coins}</span>`;
     html += `<div class="profile-actions">`;
     if (!isActive)
       html += `<button class="btn btn-small" data-action="switch" data-id="${escHtml(p.id)}">Activeer</button>`;
@@ -1616,17 +1746,22 @@ function renderProfielen() {
 }
 
 // ─── Profile management ──────────────────────────────────────
-function createProfile(naam) {
+async function createProfile(naam) {
   const cleaned = naam.trim();
   if (!cleaned) return;
   if (state.profiles.some((p) => p.naam.toLowerCase() === cleaned.toLowerCase())) {
     alert("Die naam bestaat al. Kies een andere naam."); return;
   }
-  const profile = defaultProfile(cleaned);
+  const pin = generatePin();
+  const profile = defaultProfile(cleaned, pin);
   state.profiles.push(profile);
   state.activeProfileId = profile.id;
   saveState();
+  await saveProfileToSupabase(profile);
   renderAll();
+  alert(
+  `Welkom ${cleaned}!\n\nJe geheime code is:\n\n${pin}\n\nOnthoud deze code!`);
+
 }
 
 function switchProfile(id) {
@@ -1638,8 +1773,15 @@ function switchProfile(id) {
   renderAll();
 }
 
-function deleteProfile(id) {
+async function deleteProfile(id) {
   if (!confirm("Weet je zeker dat je dit profiel wilt verwijderen? De scores van dit profiel worden ook verwijderd. Dit kan niet ongedaan worden gemaakt.")) return;
+  const profileToDelete =
+  state.profiles.find((p) => p.id === id);
+  if (profileToDelete) {
+    await deleteProfileFromSupabase(
+      profileToDelete.naam
+    );
+  }  
   // Remove leaderboard runs for this profile
   state.runsAllTime = state.runsAllTime.filter((r) => r.profileId !== id);
   // Remove speed-champion records belonging to this profile
@@ -1703,6 +1845,7 @@ function renderShop() {
     noneThemeCard.querySelector("button").addEventListener("click", () => {
       profile.selectedThemeId = "classic";
       saveState();
+      saveProfileToSupabase(profile);
       applyTheme(profile);
       renderShop();
     });
@@ -1737,6 +1880,7 @@ function renderShop() {
           }
           profile.selectedThemeId = theme.id;
           saveState();
+          saveProfileToSupabase(profile);
           applyTheme(profile);
           updateCoinBadge();
           renderShop();
@@ -1761,6 +1905,7 @@ function renderShop() {
       noneCard.querySelector("button").addEventListener("click", () => {
         profile.selectedCharacterId = null;
         saveState();
+        saveProfileToSupabase(profile);
         applyCharacter(profile);
         renderShop();
       });
@@ -1794,6 +1939,7 @@ function renderShop() {
           }
           profile.selectedCharacterId = char.id;
           saveState();
+          saveProfileToSupabase(profile);
           applyCharacter(profile);
           updateCoinBadge();
           renderShop();
@@ -1816,8 +1962,8 @@ function renderShop() {
 
     const label = current ? "✅ Actief"
       : owned || state.admin.devUnlockShop ? "Gebruik"
-      : canAfford ? `🪙 ${cost}`
-      : `${cost} 🪙`;
+      : canAfford ? `💰 ${cost}`
+      : `${cost} 💰`;
 
     card.innerHTML = `<div class="shop-card-name">🚫 ${escHtml(track.naam)}</div>
       <button class="btn${current ? " btn-active" : !tooExpensive ? " btn-primary" : " btn-locked"}"${current || tooExpensive ? " disabled" : ""}>${label}</button>`;
@@ -1831,6 +1977,7 @@ function renderShop() {
         }
         profile.selectedTrackId = track.id;
         saveState();
+        saveProfileToSupabase(profile);
         applyTrack(profile);
         updateCoinBadge();
         renderShop();
@@ -1952,7 +2099,7 @@ function renderUitdagingen() {
     html += `</div>`;
     if (mistakes.length >= 10) {
       html += `<div class="uitdagingen-challenge-wrap">
-        <p class="hint">🏆 Je hebt ${mistakes.length} uitdagingen — oefen er 10 foutloos binnen ${timeLim}s en verdien <strong>20 🪙</strong>!</p>
+        <p class="hint">🏆 Je hebt ${mistakes.length} uitdagingen — oefen er 10 foutloos binnen ${timeLim}s en verdien <strong>20 💰</strong>!</p>
         <button id="startUitdagingenBtn" class="btn btn-primary btn-large">💪 Oefen deze sommen</button>
       </div>`;
       html += `<p> </p>`;
@@ -2154,7 +2301,8 @@ function renderAdmin() {
         const modeLabel = p.gameMode === "plusmin" ? "➕➖ Plus-Min" : "✖️ Keersommen";
         return `<div class="admin-profile-item${isActive ? " active-profile" : ""}">
           <span class="profile-name">${isActive ? "★ " : ""}${escHtml(p.naam)}</span>
-          <span class="profile-coins">🪙 ${p.coins}</span>
+          <span class="profile-pin">🔑 PIN: ${escHtml(p.pin || "onbekend")}</span>
+          <span class="profile-coins">💰 ${p.coins}</span>
           <button class="btn btn-small btn-mode" data-toggle-mode="${escHtml(p.id)}">${modeLabel}</button>
           <button class="btn btn-small btn-danger" data-delete-profile="${escHtml(p.id)}">🗑️ Verwijder</button>
         </div>`;
@@ -2166,7 +2314,7 @@ function renderAdmin() {
     if (state.profiles.length === 0) return `<p class="hint">Geen profielen.</p>`;
     const profiles = state.profiles;
     const headerCells = profiles.map((p) =>
-      `<th class="stat-center">${escHtml(p.naam)}<br><small class="stat-coins">🪙 ${p.coins}</small></th>`
+      `<th class="stat-center">${escHtml(p.naam)}<br><small class="stat-coins">💰 ${p.coins}</small></th>`
     ).join("");
     let rows = "";
     if (_adminMode === "keersommen") {
@@ -2261,8 +2409,17 @@ function renderAdmin() {
         <div id="musicUploadFeedback" class="upload-feedback hidden"></div>
       </div>
       <div class="admin-section">
-        <h3>👥 Profielen verwijderen</h3>
+        <h3>👥 Profielbeheer</h3>
         <div id="adminProfileList">${adminProfileRows}</div>
+        
+        <div class="form-row">
+          <button id="migrateProfilesBtn"
+                  class="btn btn-primary">
+            📤 Migreer bestaande spelers
+          </button>
+        </div>
+
+
       </div>
       <div class="admin-section">
         <h3>📊 Speler statistieken</h3>
@@ -2307,6 +2464,7 @@ function renderAdmin() {
     if (!pw || pw.length < 3) { alert("Kies minimaal 3 tekens."); return; }
     state.admin.password = pw;
     saveState();
+    saveProfileToSupabase(profile);
     alert("Wachtwoord opgeslagen.");
     document.getElementById("newPwInput").value = "";
   });
@@ -2314,6 +2472,7 @@ function renderAdmin() {
   document.getElementById("devUnlockToggle")?.addEventListener("change", (e) => {
     state.admin.devUnlockShop = e.target.checked;
     saveState();
+    saveProfileToSupabase(profile);
     renderShop();
   });
 
@@ -2324,6 +2483,7 @@ function renderAdmin() {
       if (key && Number.isFinite(val) && val >= 5) state.admin.customTimeLimits[key] = val;
     });
     saveState();
+    saveProfileToSupabase(profile);
     const fb = document.getElementById("timeLimitsFeedback");
     if (fb) { fb.textContent = "✅ Tijdslimieten opgeslagen!"; fb.className = "upload-feedback upload-ok"; }
   });
@@ -2340,6 +2500,7 @@ function renderAdmin() {
         p.unlockedThemeIds = p.unlockedThemeIds.filter((tid) => tid !== id);
       }
       saveState();
+      saveProfileToSupabase(profile);
       applyTheme(getActiveProfile());
       renderShop();
       renderAdmin();
@@ -2358,6 +2519,7 @@ function renderAdmin() {
         if (Array.isArray(p.unlockedCharacterIds)) p.unlockedCharacterIds = p.unlockedCharacterIds.filter((cid) => cid !== id);
       }
       saveState();
+      saveProfileToSupabase(profile);
       applyCharacter(getActiveProfile());
       renderShop();
       renderAdmin();
@@ -2376,6 +2538,7 @@ function renderAdmin() {
         p.unlockedTrackIds = p.unlockedTrackIds.filter((tid) => tid !== id);
       }
       saveState();
+      saveProfileToSupabase(profile);
       applyTrack(getActiveProfile());
       renderShop();
       renderAdmin();
@@ -2398,6 +2561,7 @@ function renderAdmin() {
       if (!p) return;
       p.gameMode = p.gameMode === "plusmin" ? "keersommen" : "plusmin";
       saveState();
+      saveProfileToSupabase(profile);
       if (pid === state.activeProfileId) renderAll();
       else renderAdmin();
     });
@@ -2422,11 +2586,12 @@ function renderAdmin() {
     await idbSet(id, dataUrl);
     state.admin.uploadedThemes.push({ id, naam: name, prijs: price, cssTheme: "classic", customImage: dataUrl });
     saveState();
+    saveProfileToSupabase(profile);
     renderShop();
     renderAdmin();
     const newThemeFb = document.getElementById("themeUploadFeedback");
     if (newThemeFb) {
-      newThemeFb.textContent = `✅ Achtergrond "${escHtml(name)}" toegevoegd — prijs: 🪙 ${price} coins!`;
+      newThemeFb.textContent = `✅ Achtergrond "${escHtml(name)}" toegevoegd — prijs: 💰 ${price} coins!`;
       newThemeFb.className = "upload-feedback upload-ok";
     }
   });
@@ -2445,11 +2610,12 @@ function renderAdmin() {
     await idbSet(id, dataUrl);
     state.admin.uploadedCharacters.push({ id, naam: name, prijs: price, src: dataUrl });
     saveState();
+    saveProfileToSupabase(profile);
     renderShop();
     renderAdmin();
     const newFb = document.getElementById("charUploadFeedback");
     if (newFb) {
-      newFb.textContent = `✅ Karakter "${escHtml(name)}" toegevoegd — prijs: 🪙 ${price} coins!`;
+      newFb.textContent = `✅ Karakter "${escHtml(name)}" toegevoegd — prijs: 💰 ${price} coins!`;
       newFb.className = "upload-feedback upload-ok";
     }
   });
@@ -2468,11 +2634,12 @@ function renderAdmin() {
     await idbSet(id, dataUrl);
     state.admin.uploadedTracks.push({ id, naam: name, prijs: price, src: dataUrl });
     saveState();
+    saveProfileToSupabase(profile);
     renderShop();
     renderAdmin();
     const newMusicFb = document.getElementById("musicUploadFeedback");
     if (newMusicFb) {
-      newMusicFb.textContent = `✅ Muziek "${escHtml(name)}" toegevoegd — prijs: 🪙 ${price} coins!`;
+      newMusicFb.textContent = `✅ Muziek "${escHtml(name)}" toegevoegd — prijs: 💰 ${price} coins!`;
       newMusicFb.className = "upload-feedback upload-ok";
     }
   });
@@ -2490,10 +2657,22 @@ function renderAdmin() {
     }
     state.speedChampions = {};
     saveState();
+    saveProfileToSupabase(profile);
     renderLeaderboard();
     const fb = document.getElementById("leaderboardResetFeedback");
     if (fb) { fb.textContent = "✅ Leaderboard geleegd!"; fb.className = "upload-feedback upload-ok"; }
   });
+
+  document.getElementById("migrateProfilesBtn")
+    ?.addEventListener("click", async () => {
+
+      if (!confirm(
+        "Bestaande spelers naar Supabase migreren?"
+      )) return;
+
+      await migrateProfilesToSupabase();
+
+    });
 
   document.getElementById("adminLockBtn")?.addEventListener("click", () => {
     state.admin.unlocked = false;
@@ -2516,6 +2695,7 @@ function logoutProfile() {
   if (player) player.pause();
   state.activeProfileId = null;
   saveState();
+  
   renderAll();
 }
 
@@ -2551,7 +2731,7 @@ function renderProfileOverlay() {
   overlay.classList.remove("hidden");
 
   let html = `<h1>🏎️ RekenRace</h1>
-    <p>Tafeltjes oefenen met levels, badges 🏅 en beloningen 🪙!</p>`;
+    <p>Tafeltjes oefenen met levels, badges 🏅 en beloningen 💰!</p>`;
 
   if (state.profiles.length > 0) {
     html += `<h2>Kies jouw profiel</h2>
@@ -2569,11 +2749,44 @@ function renderProfileOverlay() {
     <button id="overlayStartBtn" class="btn btn-primary btn-large">▶️ Start!</button>
   </div>`;
 
+  html += `
+  <div style="margin:20px 0;text-align:center;">
+    <button id="parentSettingsBtn"
+            class="btn">
+      ⚙️ admin instellingen
+    </button>
+  </div>
+`;
+
   content.innerHTML = html;
 
   content.querySelectorAll(".profile-pick-btn").forEach((btn) => {
-    btn.addEventListener("click", () => {
+  btn.addEventListener("click", async () => {
+
+      const selectedProfile =
+          state.profiles.find(
+              p => p.id === btn.dataset.id
+          );
+
+      const pin = prompt(
+          `Voer de geheime code van ${selectedProfile.naam} in`
+      );
+
+      if (!pin) return;
+
+      const ok =
+          await validatePin(
+              selectedProfile.naam,
+              pin
+          );
+
+      if (!ok) {
+          alert("Verkeerde code");
+          return;
+      }
+
       switchProfile(btn.dataset.id);
+
       overlay.classList.add("hidden");
       renderAll();
     });
@@ -2588,6 +2801,14 @@ function renderProfileOverlay() {
 
   document.getElementById("overlayName")?.addEventListener("keydown", (e) => {
     if (e.key === "Enter") document.getElementById("overlayStartBtn")?.click();
+  });
+
+  document.getElementById("parentSettingsBtn")
+  ?.addEventListener("click", () => {
+    state.admin.unlocked = false;
+    renderAll();
+    openTab("admin");
+    overlay.classList.add("hidden");
   });
 
   setTimeout(() => document.getElementById("overlayName")?.focus(), 80);
@@ -2614,9 +2835,13 @@ function renderAll() {
 // ─── Initialise ──────────────────────────────────────────────
 async function init() {
   loadState();
+  await testSupabaseConnection();
   await loadConfiguredBackgrounds();
   await loadConfiguredCharacters();
   await loadBlobsFromIDB();
+
+  const profiles = await loadProfilesFromSupabase();
+  console.log(profiles);
 
   // Mode buttons
   document.getElementById("modeChallengeBtn")?.addEventListener("click", () => {
@@ -2658,6 +2883,7 @@ async function init() {
     const player = document.getElementById("musicPlayer");
     if (player) player.muted = state.musicMuted;
     saveState();
+    saveProfileToSupabase(profile);
     updateMusicToggleBtn();
   });
 
@@ -2670,6 +2896,9 @@ async function init() {
   renderAll();
   showView("stageMap");
   openTab("shop");
+  
+  // const profile = defaultProfile("SupabaseTest");
+  // saveProfileToSupabase(profile);
 }
 
 init();

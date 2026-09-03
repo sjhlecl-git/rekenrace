@@ -1,1 +1,46 @@
+# CONTEXT
 
+## Glossary
+
+- ApplicationScope: De functionele reikwijdte van de app als geheel (bijv. Werkblad, Shop, Leaderboards, Admin).
+- Stage: Een voortgangsblok dat meerdere levels groepeert.
+- StageComposition: Elke Stage bevat een vaste set levels: 1 of meer TableLevels, exact 1 ComboLevel en exact 1 BonusLevel.
+- StageDataConfig: De samenstelling en volgorde van Stages zijn hard vastgelegd in data-configuratie (niet in hardcoded beslislogica).
+- StageProgression: De volgende Stage wordt vrijgespeeld na mastery van alle TableLevels en het ComboLevel van de huidige Stage.
+- Level: Een speelbare eenheid binnen een stage.
+- RunCompletion: Een run is voltooid zodra alle vragen (inclusief herhaalde fouten) correct zijn beantwoord; dit markeert de eindtijd voor leaderboards.
+- LevelMastery: Een level is beheerst als RunCompletion bereikt is zonder enige fout onderweg en binnen de ingestelde tijdslimiet.
+- LevelType: De soort level.
+- TableLevel: Een level met precies 1 tafeltje.
+- ComboLevel: Een level met 2 of meer tafeltjes.
+- ComboLevelTableSelection: ComboLevel bevat uitsluitend tafeltjes uit de huidige stage (niet cumulatief).
+- BonusLevel: Een optioneel level voor extra coins, pas beschikbaar nadat alle niet-bonus levels van de stage beheerst zijn.
+- BonusLevelTableSelection: BonusLevel bevat tafeltjes uit alle stages tot en met de huidige stage (cumulatief gemixed).
+- BonusUnlockRule: BonusLevel in een Stage unlockt pas na mastery van alle TableLevels en het ComboLevel van diezelfde Stage.
+- CoinClaimPolicy: Coinbeloning is eenmalig per levelinstance (TableLevel, ComboLevel, BonusLevel); herhalen geeft geen extra coins.
+- CoinRewardFormula: Coinbeloning verschilt per leveltype; BonusLevel geeft meer coins dan ComboLevel, ComboLevel meer dan TableLevel. Bedrag is vast per leveltype, niet afhankelijk van snelheid of fouten (geen herhaalde optimalisatie-incentive).
+- CoinRewardValues: TableLevel=10 coins, ComboLevel=25 coins, BonusLevel=60 coins.
+- LeaderboardGranularity: Leaderboards ranken per individuele levelinstance (TableLevel, ComboLevel, BonusLevel), niet op stage-totaal.
+- LeaderboardEligibility: Leaderboard-runs zijn alle RunCompletions uit Challenge-mode zonder pause; fouten onderweg maken run niet ineligible.
+- BadgeModel: Er bestaan twee badge-niveaus: LevelBadges (prestatie per levelinstance) en StageBadges (mijlpalen op stage-niveau).
+- LevelBadge: Een badge voor prestatie binnen een specifiek levelinstance.
+- LevelBadgeSet: De levelbadges zijn LevelPerfectCompleted, LevelTriplePerfect en LevelSpeedChampion.
+- LevelPerfectCompleted: Levelbadge die wordt toegekend bij de eerste perfecte mastery op een levelinstance.
+- LevelTriplePerfect: Levelbadge die wordt toegekend na drie perfecte challenge-runs op een levelinstance.
+- LevelSpeedChampion: Unieke overdraagbare levelbadge voor de snelste tijd op een levelinstance over alle profielen; bij een snellere tijd verhuist de badge naar het nieuwe winnende profiel.
+- SpeedChampionTiebreaker: Bij gelijke snelste tijd behoudt de huidige kampioen de badge.
+- BadgeEligibility: Badges worden alleen toegekend in Challenge-runs zonder pause; pauze downgradet een run naar practice-equivalent voor badge-doeleinden.
+- StageBadge: Een badge voor een stage-mijlpaal.
+- StageBadgeSet: De stagebadges zijn StageCompleted en StageBonusMaster.
+- StageCompleted: Stagebadge die wordt toegekend bij StageCompletion.
+- StageBonusMaster: Stagebadge die wordt toegekend wanneer het BonusLevel van een voltooide Stage ook is beheerst.
+- StageBadgeDependency: StageBonusMaster veronderstelt StageCompleted; toekenning mag technisch direct plaatsvinden zodra beide voorwaarden waar zijn.
+- StageCompletion: Een Stage telt als voltooid zodra alle TableLevels en het ComboLevel beheerst zijn; BonusLevel is optioneel.
+- MasteryRule: Een Level is beheerst bij 0 fouten en afronding binnen de ingestelde tijdslimiet voor dat level.
+- CoinTrigger: Coins worden uitsluitend bij LevelMastery toekenning.
+- CoinClaimInteraction: Na LevelMastery toont het systeem een reward-popup met coinbedrag; kind accepteert om coins claim te finaliseren.
+- TimeLimitConfig: Tijdslimieten zijn configureerbaar per levelcontext (bijv. per tafeltje, ComboLevel en BonusLevel).
+- TimeLimitScope: Tijdslimietconfiguratie is globaal voor de game en niet profielspecifiek.
+- MasteryEvaluation: Alleen Challenge-runs tellen mee voor beheersing en stage progression; Practice-runs tellen niet mee voor unlocks of mastery. Pauze downgradet een Challenge-run naar practice-equivalent: geen coins, geen badges, geen mastery-teller.
+- StageProgressData: Per profiel bevat `stageProgress` per stage: completed (bool), bonusMastered (bool), badges (array), en run-history voor leaderboard.
+- Scope: Vermijd deze term voor progression; gebruik Stage of Level afhankelijk van de context.
