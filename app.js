@@ -2795,6 +2795,9 @@ async function init() {
 
   const profiles = await loadProfilesFromSupabase();
   console.log(profiles);
+  state.profiles = profiles.map(
+  p => p.profile_data
+  );
 
   // Mode buttons
   document.getElementById("modeChallengeBtn")?.addEventListener("click", () => {
